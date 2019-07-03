@@ -54,7 +54,8 @@ public class GetRequestBody {
         Scanner s = null;
         try {
 //          BufferedReader 
-            var scanner = new Scanner(request.getInputStream(), "UTF-8");
+            @SuppressWarnings("resource")
+            Scanner scanner = new Scanner(request.getInputStream(), "UTF-8");
             s = scanner.useDelimiter("\\A");
         } catch (IOException e) {
             e.printStackTrace();
