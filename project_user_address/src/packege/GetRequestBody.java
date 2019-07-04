@@ -9,8 +9,19 @@ import java.util.Scanner;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import database.JDBCconection;
+
+import java.sql.*;
+
 public class GetRequestBody {
+    
+    
+    
     public void getBody(HttpServletRequest request,HttpServletResponse response) throws IOException {
+
+        JDBCconection conect=new JDBCconection();
+        Connection con = conect.databaseConect();
+        
         response.setContentType("text/html");
         PrintWriter pw  = response.getWriter();
         
@@ -19,15 +30,15 @@ public class GetRequestBody {
         pw.println(String.format("<p><b>URL: </b>%s</p>", request.getRequestURI()));
         pw.println(String.format("<p><b>Method: </b>%s</p>",request.getMethod()));
 
-        pw.println("<p><b>Headers: </b></p>");
-        Enumeration<String> headerNames = request.getHeaderNames();
-        
-        while (headerNames.hasMoreElements()) {
-            String key = (String) headerNames.nextElement();
-            String value = request.getHeader(key);
-
-            pw.println(String.format("<p>%s = %s</p>", key, value));
-        }
+//        pw.println("<p><b>Headers: </b></p>");
+//        Enumeration<String> headerNames = request.getHeaderNames();
+//        
+//        while (headerNames.hasMoreElements()) {
+//            String key = (String) headerNames.nextElement();
+//            String value = request.getHeader(key);
+//
+//            pw.println(String.format("<p>%s = %s</p>", key, value));
+//        }
 
         pw.println("<p><b>Body: </b></p>");
         pw.println(String.format("<p>%s</p>",extractPostRequestBody(request)));
@@ -45,8 +56,17 @@ public class GetRequestBody {
 
         pw.println("</body></html>");
     }
+    private void getHeaders(HttpServletRequest request) {
+        Enumeration<String> headerNames = request.getHeaderNames();
+        System.out.println("Headers:");
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+            System.out.println(String.format("%s = %s", key, value));
+        }   
+    }
     
-    public static String extractPostRequestBody(HttpServletRequest request) {
+    private String extractPostRequestBody(HttpServletRequest request) {
         if (request.getMethod() == "GET") {
             return "none";
         }
