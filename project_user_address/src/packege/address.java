@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import database.CRUD_methods;
+
 /**
  * Servlet implementation class address
  */
@@ -25,21 +27,25 @@ public class address extends HttpServlet {
         // TODO Auto-generated constructor stub
     }
     
-    GetRequestBody getRequestBody=new GetRequestBody();
+    CRUD_methods db_work=new CRUD_methods();
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        getRequestBody.getBody(request, response);
+        db_work.databaseConect(request);
+        db_work.getData();
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getRequestBody.getBody(req, resp);
+        db_work.databaseConect(req);
+        db_work.updateData();
     }
     
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getRequestBody.getBody(req, resp);
+        db_work.databaseConect(req);
+        db_work.beginGeting(req, resp);
     }
     
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getRequestBody.getBody(req, resp);
+        db_work.databaseConect(req);
+        db_work.beginGeting(req, resp);
     }
 
 }
