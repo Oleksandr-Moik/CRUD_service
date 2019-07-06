@@ -26,25 +26,21 @@ public class user extends HttpServlet {
     public user() {
         super();
     }
-    
+
     CRUD_methods db_work=new CRUD_methods();
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        db_work.databaseConect(request);
-        db_work.getData();
+        db_work.select(request);
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.databaseConect(req);
-        db_work.updateData();
+        db_work.update(req);
     }
     
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.databaseConect(req);
-        db_work.beginGeting(req, resp);
+        db_work.insert(req);
     }
     
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.databaseConect(req);
-        db_work.beginGeting(req, resp);
+        db_work.delete(req);
     }
 }
