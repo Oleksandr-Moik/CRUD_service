@@ -5,14 +5,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-//@SuppressWarnings("unchecked")
 public class CRUD_methods {
     
     public void beginGeting(HttpServletRequest request,HttpServletResponse pesponse) {
@@ -30,12 +28,9 @@ public class CRUD_methods {
             Class.forName("com.mysql.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/api_project", "root", "root");
             String reqURI=request.getRequestURI();
-//            substring(1,str.length) //test
-//            if(!reqURI.equals("/")){con=null; return;
             String [] uri_words = reqURI.split("/", 4);
             current_table=uri_words[2];
             current_id=getID(request);
-//            System.out.println(getBody(request));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,7 +62,6 @@ public class CRUD_methods {
                     System.out.println(String.format("City: %s",rs.getString(3)));
                     System.out.println(String.format("Street: %s",rs.getString(4)));
                 }
-//            con.close();
         }
         catch (Exception e) {
             System.out.println("sel "+e);
@@ -102,11 +96,8 @@ public class CRUD_methods {
                 
                 stmt.executeUpdate();
             }
-            
             System.out.println("New parameters:");
             select(request);
-            
-//            con.close();
         }
         catch (Exception e) {
             System.out.println("up "+e);
@@ -127,7 +118,6 @@ public class CRUD_methods {
                 stmt.setInt(3, object.getInt("age"));
                 
                 stmt.executeUpdate();
-                
                 
                 stmt=con.prepareStatement("SELECT id FROM user WHERE first_name=? and last_name=?");
                 stmt.setString(1, object.getString("first_name"));
@@ -168,7 +158,6 @@ public class CRUD_methods {
                                                  object.getString("city"),
                                                  object.getString("street")));
             }
-//            con.close();
         }
         catch (Exception e) {
             System.out.println(e);
@@ -191,7 +180,6 @@ public class CRUD_methods {
                     first_name=rs.getString("first_name");
                     last_name=rs.getString("last_name");
                 }
-
                 stmt = con.prepareStatement("DELETE FROM user WHERE id=?");
                 stmt.setInt(1, current_id);
                 
@@ -210,26 +198,20 @@ public class CRUD_methods {
                     address[1]=rs.getString("city");
                     address[2]=rs.getString("street");
                 }
-                
                 stmt = con.prepareStatement("DELETE FROM address WHERE id=?");
                 stmt.setInt(1, current_id);
                 
                 stmt.executeUpdate();
                 System.out.println(String.format("Address %s, %s, %s, deleted.",address[0],address[1],address[2]));
             }
-            
-//            con.close();
         }
         catch (Exception e) {
             System.out.println(e);
         }
-       
     }
     
     private Integer getID(HttpServletRequest request){
         Integer id_i=null;  
-        
-        
         try{
             String [] id_s = request.getPathInfo().split("/", 3);
             id_i = Integer.valueOf(id_s[1]);
@@ -252,83 +234,10 @@ public class CRUD_methods {
             String bodyJSON=buffer.toString();
             JSONObject obj = new JSONObject(bodyJSON);
             
-            /*
-            Iterator<String> keys=obj.keys();
-            while(keys.hasNext()) {
-                String key=keys.next().toString();
-                var param=obj.get(key);
-                System.out.println(key+": "+param);
-            }
-            */
-            
             return obj;
-            
         }catch(Exception e) {
             System.out.println(e);
         }
         return null;
     }
-    
-    
-    /*
-    private String getHeaders(HttpServletRequest request) {
-        Enumeration<String> headerNames = request.getHeaderNames();
-        String headers="";
-        System.out.println("Headers:");
-        while (headerNames.hasMoreElements()) {
-            String key = (String) headerNames.nextElement();
-            String value = request.getHeader(key);
-            System.out.println(String.format("%s = %s", key, value));
-        }  
-        return headers;
-    }
-    */
-    
-    /*
-    private String getUrlParameters(HttpServletRequest request) {
-        String parameters=null;
-        System.out.println("Url Parameters:");
-        
-        Enumeration<String> params = request.getParameterNames();
-        boolean is_param=false;
-        while(params.hasMoreElements()){
-            String paramName = (String)params.nextElement();
-            System.out.println(String.format("\t%s = ",paramName,request.getParameter(paramName)));
-            is_param=true;
-        }
-        if(is_param)return parameters;
-        else return "None;";
-    }
-    */
-    
-    /*
-    private void responseHTML(HttpServletRequest request,HttpServletResponse response) {
-        try {
-            response.setContentType("text/html");
-            PrintWriter pw  = response.getWriter();
-            
-            pw.println("<head><head><title>user</title></head><body>");
-            
-            String uri=request.getRequestURI();
-            String method=request.getMethod();
-            
-            pw.println(String.format("<p><b>URL: </b>%s</p>", uri));
-            pw.println(String.format("<p><b>Method: </b>%s</p>",method));
-            
-            pw.println(getHeaders(request));
-            
-            pw.println(getBody(request));
-            pw.println(String.format("<p>%s</p>",extractPostRequestBody(request)));
-    
-            pw.println(getUrlParameters(request));
-                        
-            String requri = request.getPathInfo();
-            pw.println(String.format("<p><b>User id:</b> %s</p>", requri));
-    
-            pw.println("</body></html>");
-        }catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-    */
 }
