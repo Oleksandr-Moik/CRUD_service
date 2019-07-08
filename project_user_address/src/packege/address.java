@@ -37,7 +37,7 @@ public class address extends HttpServlet {
     }
     
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.insert(req);
+        db_work.insert(req,resp);
     }
     
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

@@ -33,11 +33,12 @@ public class user extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.update(req);
+//        db_work.update(req);
+        db_work.getBody(req);
     }
     
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.insert(req);
+        db_work.insert(req,resp);
     }
     
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

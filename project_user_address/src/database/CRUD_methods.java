@@ -1,5 +1,6 @@
 package database;
 
+import java.io.BufferedReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -109,7 +110,7 @@ public class CRUD_methods {
         }
     }
     
-    public void insert(HttpServletRequest request) {
+    public void insert(HttpServletRequest request, HttpServletResponse response) {
         dbConnect(request);
         if(con==null)return;
         
@@ -117,6 +118,7 @@ public class CRUD_methods {
             String query;
             if(current_table.equals("user")) {
                 query="INSERT INTO user (first_name, last_name, age) VALUES (?, ?, ?)";
+                
                 
                 String first_name="Andrii";
                 String last_name="Morozyk";
@@ -135,11 +137,11 @@ public class CRUD_methods {
                 stmt.setString(2, last_name);
                 
                 // for redirect
-                /*
                 ResultSet rs=stmt.executeQuery();
                 Integer id_new=null; 
                 while(rs.next())id_new=rs.getInt("id");
-                */
+                response.sendRedirect(request.getContextPath() + "/"+id_new);
+                
                 System.out.println(String.format("User %s %s, created.",first_name,last_name));
             }
             else if (current_table.equals("address")) {
@@ -225,9 +227,29 @@ public class CRUD_methods {
         return id_i;
     }
     
-    private String getBody(HttpServletRequest request) {
-        String bodies=null;
-        System.out.println("Body:");
+    public void getBody(HttpServletRequest request) {
+//        System.out.println("myBody: "+mybody(request));  
+        System.out.println("test "+testBody(request));
+    }
+    
+    private String testBody(HttpServletRequest req) {
+        StringBuilder body=new StringBuilder();
+        try {
+            BufferedReader br = req.getReader();
+            String line;
+            while((line=br.readLine())!=null) {
+                body.append(line);
+            }
+        }catch(Exception e) {
+            System.out.println(e);
+        }
+        
+        return body.toString();
+    }
+    
+    private String mybody(HttpServletRequest request) {
+        String bodies="";
+//        System.out.println("Body:");
         
         if (request.getMethod().equals("GET")) {
             return "none";
@@ -241,32 +263,12 @@ public class CRUD_methods {
         } catch (Exception e) {
             System.out.println("Excepyion in method 'getBody':\n"+e);
         }
+        
         while(s.hasNext()) {
-            System.out.println(s.next());
+            bodies+=s.next();
         }
-        bodies=s.hasNext() ? s.next() : ""; 
-        bodies=extractPostRequestBody(request);
-        return bodies;        
+        return bodies;      
     }
-    
-//    /*
-    private String extractPostRequestBody(HttpServletRequest request) {
-        if (request.getMethod() == "GET") {
-            return "none, get";
-        }
-        
-        Scanner s = null;
-        try {
-            @SuppressWarnings("resource")
-            Scanner scanner = new Scanner(request.getInputStream(), "UTF-8");
-            s = scanner.useDelimiter("\\A");
-        } catch (Exception e) {
-            System.out.println("Excepyion in method 'getBody':\n"+e);
-        }
-        
-        return s.hasNext() ? s.next() : "s";
-    }
-//    */
     
     /*
     private String getHeaders(HttpServletRequest request) {
