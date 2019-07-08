@@ -24,7 +24,6 @@ public class address extends HttpServlet {
 	
     public address() {
         super();
-        // TODO Auto-generated constructor stub
     }
     
     CRUD_methods db_work=new CRUD_methods();
