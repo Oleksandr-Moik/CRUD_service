@@ -5,11 +5,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Scanner;
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
+
+//@SuppressWarnings("unchecked")
 public class CRUD_methods {
     
     public void beginGeting(HttpServletRequest request,HttpServletResponse pesponse) {
@@ -79,23 +82,23 @@ public class CRUD_methods {
             System.out.println("Last parameters:");
             select(request);
             
+            JSONObject object=getJsonParameters(request);
+            
             if(current_table.equals("user")) {
-                int age = (int)(10+Math.random()*20);
-                System.out.println("Enter new age: "+age);
-                
-                PreparedStatement stmt=con.prepareStatement("UPDATE user SET age=? WHERE id=?");
-                stmt.setInt(1, age);
-                stmt.setInt(2, current_id);
+                PreparedStatement stmt=con.prepareStatement("UPDATE user SET first_name=?, last_name=?, age=? WHERE id=?");
+                stmt.setString(1, object.getString("first_name"));                
+                stmt.setString(2, object.getString("last_name"));
+                stmt.setInt(3, object.getInt("age"));
+                stmt.setInt(4, current_id);
                 
                 stmt.executeUpdate();
             }
             else if (current_table.equals("address")) {
-                String city = "Main-street"+(int)(Math.random()*10);
-                System.out.println("Enter new street: "+city);
-                
-                PreparedStatement stmt=con.prepareStatement("UPDATE address SET street=? WHERE id=?");
-                stmt.setString(1, city);
-                stmt.setInt(2, current_id);
+                PreparedStatement stmt=con.prepareStatement("UPDATE address SET country=?, city=?, street=? WHERE id=?");
+                stmt.setString(1, object.getString("country"));                
+                stmt.setString(2, object.getString("city"));
+                stmt.setString(3, object.getString("street"));
+                stmt.setInt(4, current_id);
                 
                 stmt.executeUpdate();
             }
@@ -115,52 +118,56 @@ public class CRUD_methods {
         if(con==null)return;
         
         try{
-            String query;
+            JSONObject object=getJsonParameters(request);
+            
             if(current_table.equals("user")) {
-                query="INSERT INTO user (first_name, last_name, age) VALUES (?, ?, ?)";
-                
-                
-                String first_name="Andrii";
-                String last_name="Morozyk";
-                Integer age=(int)(10+Math.random()*20);
-                
-                PreparedStatement stmt = con.prepareStatement(query);
-                stmt.setString(1, first_name);
-                stmt.setString(2, last_name);
-                stmt.setInt(3, age);
+                PreparedStatement stmt = con.prepareStatement("INSERT INTO user (first_name, last_name, age) VALUES (?, ?, ?)");
+                stmt.setString(1, object.getString("first_name"));                
+                stmt.setString(2, object.getString("last_name"));
+                stmt.setInt(3, object.getInt("age"));
                 
                 stmt.executeUpdate();
                 
                 
                 stmt=con.prepareStatement("SELECT id FROM user WHERE first_name=? and last_name=?");
-                stmt.setString(1, first_name);
-                stmt.setString(2, last_name);
+                stmt.setString(1, object.getString("first_name"));
+                stmt.setString(2, object.getString("last_name"));
                 
                 // for redirect
                 ResultSet rs=stmt.executeQuery();
                 Integer id_new=null; 
                 while(rs.next())id_new=rs.getInt("id");
-                response.sendRedirect(request.getContextPath() + "/"+id_new);
+                String str = request.getRequestURI();
+                response.sendRedirect(str.substring(0, str.length()-1)+id_new);
                 
-                System.out.println(String.format("User %s %s, created.",first_name,last_name));
+                System.out.println(String.format("User %s %s, created.",
+                                                 object.getString("first_name"),
+                                                 object.getString("last_name")));
             }
             else if (current_table.equals("address")) {
-                query="INSERT INTO address (country, city, street) VALUES (?, ?, ?)";
-                
-                String country="Ukraine";
-                String city="Kijv";
-                String street="Main-street";
-                
-                PreparedStatement stmt = con.prepareStatement(query);
-                stmt.setString(1, country);
-                stmt.setString(2, city);
-                stmt.setString(3, street);
+                PreparedStatement stmt = con.prepareStatement("INSERT INTO address (country, city, street) VALUES (?, ?, ?)");
+                stmt.setString(1, object.getString("country"));                
+                stmt.setString(2, object.getString("city"));
+                stmt.setString(3, object.getString("street"));
                 
                 stmt.executeUpdate();
                 
-                System.out.println(String.format("Address %s, %s, %s, created",country,city,street));
+                stmt=con.prepareStatement("SELECT id FROM address WHERE country=? and city=? and street=?");
+                stmt.setString(1, object.getString("country"));                
+                stmt.setString(2, object.getString("city"));
+                stmt.setString(3, object.getString("street"));
+                
+                ResultSet rs=stmt.executeQuery();
+                Integer id_new=null; 
+                while(rs.next())id_new=rs.getInt("id");
+                String str = request.getRequestURI();
+                response.sendRedirect(str.substring(0, str.length()-1)+id_new);
+                
+                System.out.println(String.format("Address %s, %s, %s, created",
+                                                 object.getString("country"),
+                                                 object.getString("city"),
+                                                 object.getString("street")));
             }
-            
 //            con.close();
         }
         catch (Exception e) {
@@ -193,21 +200,22 @@ public class CRUD_methods {
                 System.out.println(String.format("User %s %s, deleted.",first_name,last_name));
             }
             else if (current_table.equals("address")) {
-                PreparedStatement stmt=con.prepareStatement("SELECT country, city FROM address WHERE id=?");
+                PreparedStatement stmt=con.prepareStatement("SELECT country, city, street FROM address WHERE id=?");
                 stmt.setInt(1, current_id);
                 ResultSet rs=stmt.executeQuery();
                 
-                String[] address=new String[2];
+                String[] address=new String[3];
                 while(rs.next())  {
                     address[0]=rs.getString("country");
                     address[1]=rs.getString("city");
+                    address[2]=rs.getString("street");
                 }
                 
                 stmt = con.prepareStatement("DELETE FROM address WHERE id=?");
                 stmt.setInt(1, current_id);
                 
                 stmt.executeUpdate();
-                System.out.println(String.format("Address %s %s, deleted.",address[0],address[1]));
+                System.out.println(String.format("Address %s, %s, %s, deleted.",address[0],address[1],address[2]));
             }
             
 //            con.close();
@@ -220,55 +228,47 @@ public class CRUD_methods {
     
     private Integer getID(HttpServletRequest request){
         Integer id_i=null;  
-        String [] id_s = request.getPathInfo().split("/", 3);
         
-        try{id_i = Integer.valueOf(id_s[1]);}
-        catch (NumberFormatException nfe) {System.out.println(nfe);}
+        
+        try{
+            String [] id_s = request.getPathInfo().split("/", 3);
+            id_i = Integer.valueOf(id_s[1]);
+        }catch (Exception e) {
+            System.out.println(e);
+        }
         return id_i;
     }
     
-    public void getBody(HttpServletRequest request) {
-//        System.out.println("myBody: "+mybody(request));  
-        System.out.println("test "+testBody(request));
-    }
-    
-    private String testBody(HttpServletRequest req) {
-        StringBuilder body=new StringBuilder();
+    private JSONObject getJsonParameters(HttpServletRequest request) {
+        if(request.getMethod().equals("GET"))return null;
         try {
-            BufferedReader br = req.getReader();
+            StringBuilder buffer=new StringBuilder();
+            BufferedReader reader = request.getReader();
             String line;
-            while((line=br.readLine())!=null) {
-                body.append(line);
+            while((line=reader.readLine())!=null) {
+                buffer.append(line);
             }
+            
+            String bodyJSON=buffer.toString();
+            JSONObject obj = new JSONObject(bodyJSON);
+            
+            /*
+            Iterator<String> keys=obj.keys();
+            while(keys.hasNext()) {
+                String key=keys.next().toString();
+                var param=obj.get(key);
+                System.out.println(key+": "+param);
+            }
+            */
+            
+            return obj;
+            
         }catch(Exception e) {
             System.out.println(e);
         }
-        
-        return body.toString();
+        return null;
     }
     
-    private String mybody(HttpServletRequest request) {
-        String bodies="";
-//        System.out.println("Body:");
-        
-        if (request.getMethod().equals("GET")) {
-            return "none";
-        }
-        
-        Scanner s = null;
-        try {
-            @SuppressWarnings("resource")
-            Scanner scanner = new Scanner(request.getInputStream(), "UTF-8");
-            s = scanner.useDelimiter("\\A");
-        } catch (Exception e) {
-            System.out.println("Excepyion in method 'getBody':\n"+e);
-        }
-        
-        while(s.hasNext()) {
-            bodies+=s.next();
-        }
-        return bodies;      
-    }
     
     /*
     private String getHeaders(HttpServletRequest request) {
