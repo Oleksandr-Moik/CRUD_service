@@ -31,7 +31,10 @@ public class CRUD_methods {
             String [] uri_words = reqURI.split("/", 4);
             current_table=uri_words[2];
             current_id=getID(request);
-        } catch (Exception e) {
+        }catch(NullPointerException npe) {
+            con=null;
+            System.out.println("Connecting user or address id is empty!");
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -46,61 +49,89 @@ public class CRUD_methods {
             
             ResultSet rs=stmt.executeQuery();
             
-            if(current_table.equals("user"))
-                while(rs.next()) {
-                    System.out.println("*USER*");
-                    System.out.println(String.format("User id=%d",rs.getInt(1)));
-                    System.out.println(String.format("First name: %s",rs.getString(2)));
-                    System.out.println(String.format("Last name: %s",rs.getString(3)));
-                    System.out.println(String.format("Age: %d",rs.getInt(4)));  
-                }
-            else if (current_table.equals("address"))
-                while(rs.next())  {
-                    System.out.println("*ADDRESS*");
-                    System.out.println(String.format("Address id=%d",rs.getInt(1)));
-                    System.out.println(String.format("Country: %s",rs.getString(2)));
-                    System.out.println(String.format("City: %s",rs.getString(3)));
-                    System.out.println(String.format("Street: %s",rs.getString(4)));
-                }
+            int rows = 0;
+            rs.last();
+            rows = rs.getRow();
+            rs.beforeFirst();
+            
+            if(rows!=0) {
+                if(current_table.equals("user"))
+                    while(rs.next()) {
+                        System.out.println("*USER*");
+                        System.out.println(String.format("User id=%d",rs.getInt(1)));
+                        System.out.println(String.format("First name: %s",rs.getString(2)));
+                        System.out.println(String.format("Last name: %s",rs.getString(3)));
+                        System.out.println(String.format("Age: %d",rs.getInt(4)));
+                    }
+                else if (current_table.equals("address"))
+                    while(rs.next())  {
+                        System.out.println("*ADDRESS*");
+                        System.out.println(String.format("Address id=%d",rs.getInt(1)));
+                        System.out.println(String.format("Country: %s",rs.getString(2)));
+                        System.out.println(String.format("City: %s",rs.getString(3)));
+                        System.out.println(String.format("Street: %s",rs.getString(4)));
+                    }
+            }
+            else {
+                System.out.println("Page not found!");
+            }
         }
         catch (Exception e) {
-            System.out.println("sel "+e);
+            System.out.println("select: "+e);
         }
     }
     
+    @SuppressWarnings("resource")
     public void update(HttpServletRequest request) {
         dbConnect(request);
         if(con==null)return;
         
         try {
-            System.out.println("Last parameters:");
-            select(request);
+            String query=String.format("SELECT * FROM %s WHERE id=?", current_table);
+            PreparedStatement stmt=con.prepareStatement(query);
+            stmt.setLong(1, current_id);
             
-            JSONObject object=getJsonParameters(request);
+            ResultSet rs=stmt.executeQuery();
             
-            if(current_table.equals("user")) {
-                PreparedStatement stmt=con.prepareStatement("UPDATE user SET first_name=?, last_name=?, age=? WHERE id=?");
-                stmt.setString(1, object.getString("first_name"));                
-                stmt.setString(2, object.getString("last_name"));
-                stmt.setInt(3, object.getInt("age"));
-                stmt.setInt(4, current_id);
+            int rows = 0;
+            rs.last();
+            rows = rs.getRow();
+            rs.beforeFirst();
+            
+            if(rows!=0) {
+                System.out.println("Last parameters:");
+                select(request);
                 
-                stmt.executeUpdate();
-            }
-            else if (current_table.equals("address")) {
-                PreparedStatement stmt=con.prepareStatement("UPDATE address SET country=?, city=?, street=? WHERE id=?");
-                stmt.setString(1, object.getString("country"));                
-                stmt.setString(2, object.getString("city"));
-                stmt.setString(3, object.getString("street"));
-                stmt.setInt(4, current_id);
+                JSONObject object=getJsonParameters(request);
                 
-                stmt.executeUpdate();
+                if(current_table.equals("user")) {
+                    
+                    stmt=con.prepareStatement("UPDATE user SET first_name=?, last_name=?, age=? WHERE id=?");
+                    stmt.setString(1, object.getString("first_name"));                
+                    stmt.setString(2, object.getString("last_name"));
+                    stmt.setInt(3, object.getInt("age"));
+                    stmt.setInt(4, current_id);
+                    
+                    stmt.executeUpdate();
+                }
+                else if (current_table.equals("address")) {
+                    stmt=con.prepareStatement("UPDATE address SET country=?, city=?, street=? WHERE id=?");
+                    stmt.setString(1, object.getString("country"));                
+                    stmt.setString(2, object.getString("city"));
+                    stmt.setString(3, object.getString("street"));
+                    stmt.setInt(4, current_id);
+                    
+                    stmt.executeUpdate();
+                }
+                System.out.println("New parameters:");
+                select(request);
             }
-            System.out.println("New parameters:");
-            select(request);
+            else {
+                System.out.println("Update page not found!");
+            }
         }
         catch (Exception e) {
-            System.out.println("up "+e);
+            System.out.println("update: "+e);
         }
     }
     
@@ -160,7 +191,7 @@ public class CRUD_methods {
             }
         }
         catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Insert: "+e);
         }
     }
     
@@ -174,39 +205,60 @@ public class CRUD_methods {
                 stmt.setInt(1, current_id);
                 ResultSet rs=stmt.executeQuery();
                 
-                String first_name=null;
-                String last_name=null;
-                while(rs.next())  {
-                    first_name=rs.getString("first_name");
-                    last_name=rs.getString("last_name");
+                int rows = 0;
+                rs.last();
+                rows = rs.getRow();
+                rs.beforeFirst();
+                
+                if(rows!=0) {
+                    String first_name=null;
+                    String last_name=null;
+                    while(rs.next())  {
+                        first_name=rs.getString("first_name");
+                        last_name=rs.getString("last_name");
+                    }
+                    stmt = con.prepareStatement("DELETE FROM user WHERE id=?");
+                    stmt.setInt(1, current_id);
+                    
+                    stmt.executeUpdate();
+                    
+                    System.out.println(String.format("User %s %s, deleted.",first_name,last_name));
                 }
-                stmt = con.prepareStatement("DELETE FROM user WHERE id=?");
-                stmt.setInt(1, current_id);
-                
-                stmt.executeUpdate();
-                
-                System.out.println(String.format("User %s %s, deleted.",first_name,last_name));
+                else {
+                    System.out.println("User page not found!");
+                }
+                    
             }
             else if (current_table.equals("address")) {
                 PreparedStatement stmt=con.prepareStatement("SELECT country, city, street FROM address WHERE id=?");
                 stmt.setInt(1, current_id);
                 ResultSet rs=stmt.executeQuery();
                 
-                String[] address=new String[3];
-                while(rs.next())  {
-                    address[0]=rs.getString("country");
-                    address[1]=rs.getString("city");
-                    address[2]=rs.getString("street");
-                }
-                stmt = con.prepareStatement("DELETE FROM address WHERE id=?");
-                stmt.setInt(1, current_id);
+                int rows = 0;
+                rs.last();
+                rows = rs.getRow();
+                rs.beforeFirst();
                 
-                stmt.executeUpdate();
-                System.out.println(String.format("Address %s, %s, %s, deleted.",address[0],address[1],address[2]));
+                if(rows!=0) {
+                    String[] address=new String[3];
+                    while(rs.next())  {
+                        address[0]=rs.getString("country");
+                        address[1]=rs.getString("city");
+                        address[2]=rs.getString("street");
+                    }
+                    stmt = con.prepareStatement("DELETE FROM address WHERE id=?");
+                    stmt.setInt(1, current_id);
+                    
+                    stmt.executeUpdate();
+                    System.out.println(String.format("Address %s, %s, %s, deleted.",address[0],address[1],address[2]));
+                }
+                else {
+                    System.out.println("Address page not found!");
+                }
             }
         }
         catch (Exception e) {
-            System.out.println(e);
+            System.out.println("delete: "+e);
         }
     }
     
@@ -216,7 +268,8 @@ public class CRUD_methods {
             String [] id_s = request.getPathInfo().split("/", 3);
             id_i = Integer.valueOf(id_s[1]);
         }catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Id is empty! Enter id!");
+            System.out.println("getID: "+e);
         }
         return id_i;
     }
@@ -236,7 +289,7 @@ public class CRUD_methods {
             
             return obj;
         }catch(Exception e) {
-            System.out.println(e);
+            System.out.println("get JSON: "+e);
         }
         return null;
     }
