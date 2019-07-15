@@ -135,7 +135,7 @@ public class CRUD_methods {
         }
     }
     
-    public void insert(HttpServletRequest request, HttpServletResponse response) {
+    public void create(HttpServletRequest request, HttpServletResponse response) {
         dbConnect(request);
         if(con==null)return;
         

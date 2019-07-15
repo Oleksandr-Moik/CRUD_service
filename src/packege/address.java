@@ -32,11 +32,11 @@ public class address extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.update(req);
+        db_work.create(req, resp);
     }
     
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        db_work.insert(req,resp);
+        db_work.update(req);
     }
     
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
